@@ -57,7 +57,7 @@ void MadgwickFilter::estimate_pose(Eigen::Vector3d acc, Eigen::Vector3d gyro)
 	{
 		std::chrono::system_clock::time_point time_stamp = std::chrono::system_clock::now(); // get time stamp
 
-		Eigen::VectorXd d_quaternion; d_quaternion.resize(4,1);
+		Eigen::Vector4d d_quaternion;
 		d_quaternion[0] = 0.5*(-quaternion[1]*gyro.x()-quaternion[2]*gyro.y()-quaternion[3]*gyro.z());
 		d_quaternion[1] = 0.5*( quaternion[0]*gyro.x()+quaternion[2]*gyro.z()+quaternion[3]*gyro.y());
 		d_quaternion[2] = 0.5*( quaternion[0]*gyro.y()-quaternion[1]*gyro.z()+quaternion[3]*gyro.x());
@@ -77,7 +77,6 @@ void MadgwickFilter::estimate_pose(Eigen::Vector3d acc, Eigen::Vector3d gyro)
 
 		Eigen::VectorXd f_nable; f_nable.resize(4,1);
 		f_nable = J.transpose() * f;
-
 		f_nable = f_nable.normalized();
 
 		double delta = std::chrono::duration_cast<std::chrono::milliseconds>(time_stamp-old_time_stamp).count() / 1000.0;
