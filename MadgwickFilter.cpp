@@ -51,8 +51,6 @@ void MadgwickFilter::reset()
 	quaternion = Eigen::Vector4d(1.0, 0.0, 0.0, 0.0);
 }
 
-// TODO
-// this funtion needed to call constant.
 void MadgwickFilter::estimate_pose(Eigen::Vector3d acc, Eigen::Vector3d gyro)
 {
 	try
@@ -64,25 +62,26 @@ void MadgwickFilter::estimate_pose(Eigen::Vector3d acc, Eigen::Vector3d gyro)
 		d_quaternion[1] = 0.5*( quaternion[0]*gyro.x()+quaternion[2]*gyro.z()+quaternion[3]*gyro.y());
 		d_quaternion[2] = 0.5*( quaternion[0]*gyro.y()-quaternion[1]*gyro.z()+quaternion[3]*gyro.x());
 		d_quaternion[3] = 0.5*( quaternion[0]*gyro.z()+quaternion[1]*gyro.y()-quaternion[2]*gyro.x());
-		
+
+		acc = acc.normalized();
+
 		Eigen::MatrixXd J; J.resize(3,4);
 		J << -2*quaternion[2], 2*quaternion[3], -2*quaternion[0], 2*quaternion[1],
 				  2*quaternion[1], 2*quaternion[0],  2*quaternion[3], 2*quaternion[2],
 					0, -4*quaternion[1], -4*quaternion[2], 0;
 
 		Eigen::Vector3d f;
-		acc = acc.normalized();
 		f.x() = 2*(quaternion[1]*quaternion[3] - quaternion[0]*quaternion[2]) - acc.x();
 		f.y() = 2*(quaternion[0]*quaternion[1] - quaternion[2]*quaternion[3]) - acc.y();
 		f.z() = 2*(0.5 - std::pow(quaternion[1], 2) - std::pow(quaternion[2], 2)) - acc.z();
 
 		Eigen::VectorXd f_nable; f_nable.resize(4,1);
 		f_nable = J.transpose() * f;
+
 		f_nable = f_nable.normalized();
 
 		double delta = std::chrono::duration_cast<std::chrono::milliseconds>(time_stamp-old_time_stamp).count() / 1000.0;
-		for(std::size_t index=0;index<4;index++)
-			quaternion[index] += (d_quaternion[index]-(beta*f_nable[index])) * delta;
+		quaternion += (d_quaternion-(beta*f_nable)) * delta;
 		quaternion = quaternion.normalized();
 
 		euler.x() = std::atan2(2*(quaternion[0]*quaternion[1] + quaternion[2]*quaternion[3]), -2*(std::pow(quaternion[1], 2)) + std::pow(quaternion[2], 2) + 1);
