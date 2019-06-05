@@ -51,6 +51,8 @@ void MadgwickFilter::reset()
 	quaternion = Eigen::Vector4d(1.0, 0.0, 0.0, 0.0);
 }
 
+// TODO
+// this funtion needed to call constant.
 void MadgwickFilter::estimate_pose(Eigen::Vector3d acc, Eigen::Vector3d gyro)
 {
 	try
